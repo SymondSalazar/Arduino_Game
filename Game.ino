@@ -10,6 +10,7 @@ const int botonIncremento = 7;
 const int botonDecremento = 8;
 const int botonDisparar = 9;
 bool juegoEmpezado = false;
+bool enemigosGen = false;
 unsigned long tiempoInicio = 0;
 unsigned long intervaloTime = 1000; // Intervalo de actualización del tiempo en milisegundos
 unsigned long intervaloPersonaje = 250;
@@ -17,11 +18,18 @@ unsigned long ultimaActualizacion = 0;
 unsigned long ultimaActualizacionPersonaje = 0;
 unsigned long ultimoIncremento = 0;
 const unsigned long debounceDelay = 350;
-bool blocMovimiento = false;
 bool balaDisparada = false;
 int posicionPersonaje = 1; // Posición del personaje en la pantalla
 int posicionBalaY;
 int posicionBalaX = 1;
+int minutos;
+int segundos;
+int contadorKills;
+int posicionEn1;
+int posicionEn2;
+int posicionEn3;
+int espacios = 2;
+
 
 void setup() {
   Serial.begin(9600); // Para depuración
@@ -77,6 +85,8 @@ void mostrarBienvenida() {
 void juego() {
   unsigned long ahora = millis();
 
+  personajeControl();
+
   if (ahora - ultimaActualizacion >= intervaloTime) {
     mostrarTiempo();
     ultimaActualizacion = ahora;
@@ -86,16 +96,17 @@ void juego() {
     dibujarEscena();
     ultimaActualizacionPersonaje = ahora;
     if (balaDisparada) balaControl();
+    comprobarColisiones();
   }
 
-  personajeControl();
+  
 }
 
 void mostrarTiempo() {
   unsigned long ahora = millis();
   unsigned long transcurrido = (ahora - tiempoInicio) / 1000;
-  int minutos = transcurrido / 60;
-  int segundos = transcurrido % 60;
+  minutos = transcurrido / 60;
+  segundos = transcurrido % 60;
 
   lcd.setCursor(0, 0);
   lcd.print("                    "); // Limpiar la primera línea
@@ -138,7 +149,44 @@ void balaControl() {
 }
 
 void enemigoControl() {
-  // En desarrollo
+  
+  
+  
+  if(posicionEn1 == 0 && posicionEn2==0 && posicionEn3 == 0 ){
+
+  }
+}
+
+void comprobarColisiones(){
+  if(balaDisparada && posicionBalaX==posicionEn1){
+    posicionEn1 = 0;
+    contadorKills++;
+    balaDisparada=false;
+  }
+ 
+  if(balaDisparada && posicionBalaX==posicionEn2){
+    posicionEn2 = 0;
+    contadorKills++;
+    balaDisparada=false;
+  }
+  if(balaDisparada && posicionBalaX==posicionEn3){
+    posicionEn3 = 0;
+    contadorKills++;
+    balaDisparada=false;
+  }
+
+  if(posicionPersonaje == 2 && posicionEn3 == 0 ){
+    juegoEmpezado = false;
+    gameOver();
+  }
+  if(posicionPersonaje == 1 && posicionEn2 == 0 ){
+    juegoEmpezado = false;
+    gameOver();
+  }
+  if(posicionPersonaje == 0 && posicionEn1 == 0 ){
+    juegoEmpezado = false;
+    gameOver();
+  }
 }
 
 void dibujarEscena() {
@@ -162,6 +210,34 @@ void dibujarEscena() {
       lcd.print("-");
     }
   }
+}
 
-  blocMovimiento = false;
+void gameOver(){
+  lcd.clear();
+  lcd.setCursor(0, 0);
+  lcd.print("-----Game  Over-----");
+  
+  lcd.setCursor(0, 1);
+  lcd.print("Time: ");
+  lcd.print(minutos);
+  lcd.print(":");
+  if (segundos < 10) {
+    lcd.print("0"); // Añadir cero delante si es necesario
+  }
+  lcd.print(segundos);
+  
+  lcd.setCursor(0, 2);
+  lcd.print("Kills: ");
+  lcd.print(contadorKills);
+
+  lcd.setCursor(0, 3);
+  long score = (minutos*60*10) + (segundos*10) + contadorKills*100
+  lcd.print("Score: ");
+  lcd.print(score);
+
+  while (digitalRead(botonIncremento) == LOW &&
+         digitalRead(botonDecremento) == LOW &&
+         digitalRead(botonDisparar) == LOW) {
+    delay(100); // Esperar hasta que se presione un botón
+  }
 }
