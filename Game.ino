@@ -243,7 +243,7 @@ void enemigoControl() {
     posiciones[2] = 23 + espacios;
     posiciones[3] = 19 + espacios * random(1, 3);
     posiciones[4] = 19 + espacios * 2;
-    posiciones[5] = 19 + espacios * 2 * random(0, 3);
+    posiciones[5] = 19 + espacios * 2 * random(1, 3);
     enemigosGen = true;
   }
   else {
@@ -253,7 +253,7 @@ void enemigoControl() {
         posiciones[i]--;
       } else {
         // Reubicar enemigo fuera de pantalla
-        posiciones[i] = 19 + espacios * random(0, 3);
+        posiciones[i] = 19 + espacios * random(1, 3);
       }
     }
   }
@@ -270,7 +270,7 @@ void comprobarColisiones() {
         posicionesY[i] == posicionBalaY) 
     {
       contadorKills++;
-      posiciones[i] = 19 + espacios * random(0, 3);
+      posiciones[i] = 19 + espacios * random(1, 3);
       balaDisparada = false;
     }
 
