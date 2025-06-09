@@ -25,9 +25,7 @@ int posicionBalaX = 1;
 int minutos;
 int segundos;
 int contadorKills;
-int posicionEn1;
-int posicionEn2;
-int posicionEn3;
+int posiciones[] = {19,19,19,19,}
 int espacios = 2;
 
 
@@ -151,42 +149,31 @@ void balaControl() {
 void enemigoControl() {
   
   
-  
-  if(posicionEn1 == 0 && posicionEn2==0 && posicionEn3 == 0 ){
-
-  }
 }
 
 void comprobarColisiones(){
-  if(balaDisparada && posicionBalaX==posicionEn1){
-    posicionEn1 = 0;
-    contadorKills++;
-    balaDisparada=false;
-  }
- 
-  if(balaDisparada && posicionBalaX==posicionEn2){
-    posicionEn2 = 0;
-    contadorKills++;
-    balaDisparada=false;
-  }
-  if(balaDisparada && posicionBalaX==posicionEn3){
-    posicionEn3 = 0;
-    contadorKills++;
-    balaDisparada=false;
-  }
+  
+    for(int i = 0; i < 6; i++){
+      if (balaDisparada && posiciones[i] == posicionBalaX){
+        contadorKills++;
+        posiciones[i] = 20;// por hacer
+        balaDisparada=false;
+      }
 
-  if(posicionPersonaje == 2 && posicionEn3 == 0 ){
-    juegoEmpezado = false;
-    gameOver();
-  }
-  if(posicionPersonaje == 1 && posicionEn2 == 0 ){
-    juegoEmpezado = false;
-    gameOver();
-  }
-  if(posicionPersonaje == 0 && posicionEn1 == 0 ){
-    juegoEmpezado = false;
-    gameOver();
-  }
+      if(posicionPersonaje == 2 && posiciones[i] == 0 ){
+        juegoEmpezado = false;
+        gameOver();
+      }
+      if(posicionPersonaje == 1 && posiciones[i] == 0 ){
+        juegoEmpezado = false;
+        gameOver();
+      }
+      if(posicionPersonaje == 0 && posiciones[i] == 0 ){
+        juegoEmpezado = false;
+        gameOver();
+      } 
+
+    }
 }
 
 void dibujarEscena() {
