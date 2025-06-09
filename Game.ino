@@ -17,7 +17,7 @@ unsigned long intervaloPersonaje = 250;
 unsigned long ultimaActualizacion = 0;
 unsigned long ultimaActualizacionPersonaje = 0;
 unsigned long ultimoIncremento = 0;
-const unsigned long debounceDelay = 350;
+const unsigned long debounceDelay = 300;
 bool balaDisparada = false;
 int posicionPersonaje = 1; // Posición del personaje en la pantalla
 int posicionBalaY;
@@ -25,8 +25,9 @@ int posicionBalaX = 1;
 int minutos;
 int segundos;
 int contadorKills;
-int posiciones[] = {19,19,19,19,}
-int espacios = 2;
+int posiciones[] = {19,19,19,19,19,19};
+int posicionesY[]= {0,0,1,1,2,2};
+int espacios = 4;
 
 
 void setup() {
@@ -91,13 +92,12 @@ void juego() {
   }
 
   if (ahora - ultimaActualizacionPersonaje >= intervaloPersonaje) {
+    if (balaDisparada) balaControl();
+    enemigoControl();
+    comprobarColisiones();
     dibujarEscena();
     ultimaActualizacionPersonaje = ahora;
-    if (balaDisparada) balaControl();
-    comprobarColisiones();
   }
-
-  
 }
 
 void mostrarTiempo() {
@@ -132,8 +132,10 @@ void personajeControl() {
   }
 
   if (digitalRead(botonDisparar) == HIGH && !balaDisparada) {
-    posicionBalaY = posicionPersonaje;
     balaDisparada = true;
+    posicionBalaY = posicionPersonaje;
+    posicionBalaX = 1;
+    
   }
 }
 
@@ -147,33 +149,44 @@ void balaControl() {
 }
 
 void enemigoControl() {
-  
-  
+  if(!enemigosGen){
+    posiciones[0] = 19;
+    posiciones[1] = 27;
+    posiciones[2] = 23 + espacios;
+    posiciones[3] = 19 + espacios * random(1, 3);
+    posiciones[4] = 19 + espacios * 2 ;
+    posiciones[5] = 19 + espacios * 2 * random(0, 3);
+    enemigosGen = true;
+  }
+  else{
+    for(int i = 0; i < 6; i++){
+      if (posiciones[i] > 0) {
+        posiciones[i]--;
+      } else {
+        posiciones[i] = 19 + espacios * random(0, 3); // Reubicar enemigo fuera de la pantalla
+      }
+    }
+  }
 }
 
-void comprobarColisiones(){
-  
-    for(int i = 0; i < 6; i++){
-      if (balaDisparada && posiciones[i] == posicionBalaX){
-        contadorKills++;
-        posiciones[i] = 20;// por hacer
-        balaDisparada=false;
-      }
-
-      if(posicionPersonaje == 2 && posiciones[i] == 0 ){
-        juegoEmpezado = false;
-        gameOver();
-      }
-      if(posicionPersonaje == 1 && posiciones[i] == 0 ){
-        juegoEmpezado = false;
-        gameOver();
-      }
-      if(posicionPersonaje == 0 && posiciones[i] == 0 ){
-        juegoEmpezado = false;
-        gameOver();
-      } 
-
+void comprobarColisiones() {
+  for (int i = 0; i < 6; i++) {
+    // Verifica si la bala está en el rango del enemigo (±1)
+    if (balaDisparada && 
+        abs(posiciones[i] - posicionBalaX) <= 1 && 
+        posicionesY[i] == posicionBalaY) 
+    {
+      contadorKills++;
+      posiciones[i] = 19 + espacios * random(0, 3);
+      balaDisparada = false;
     }
+
+    // Colisión con personaje (incluye rango)
+    if (posiciones[i] <= 0 && posicionesY[i] == posicionPersonaje) {
+      juegoEmpezado = false;
+      gameOver();
+    }
+  }
 }
 
 void dibujarEscena() {
@@ -196,10 +209,26 @@ void dibujarEscena() {
       lcd.setCursor(posicionBalaX, i + 1);
       lcd.print("-");
     }
+
+    for(int j = 0; j<6;j++){
+      if(posiciones[j]>= 0 && posiciones[j]<20){
+        lcd.setCursor(posiciones[j], posicionesY[j] + 1);
+        lcd.print("X");
+      }
+    }
   }
 }
 
 void gameOver(){
+
+  posicionPersonaje = 1;
+  balaDisparada = false;
+  enemigosGen = false;
+  tiempoInicio = millis();
+  for (int i = 0; i < 6; i++) {
+    posiciones[i] = 19;
+  }
+
   lcd.clear();
   lcd.setCursor(0, 0);
   lcd.print("-----Game  Over-----");
@@ -213,18 +242,21 @@ void gameOver(){
   }
   lcd.print(segundos);
   
+  
   lcd.setCursor(0, 2);
   lcd.print("Kills: ");
   lcd.print(contadorKills);
-
+  
   lcd.setCursor(0, 3);
-  long score = (minutos*60*10) + (segundos*10) + contadorKills*100
+  long score = (minutos*60*10) + (segundos*10) + contadorKills*100;
   lcd.print("Score: ");
   lcd.print(score);
-
+  contadorKills = 0;
   while (digitalRead(botonIncremento) == LOW &&
          digitalRead(botonDecremento) == LOW &&
          digitalRead(botonDisparar) == LOW) {
     delay(100); // Esperar hasta que se presione un botón
   }
+
+  delay(500);
 }
